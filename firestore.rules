@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Deny All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Startup Rules
+    match /startups/{startupId} {
+      function isMember() {
+        // In a real app, we'd check a membership collection. 
+        // For this hackathon MVP, we allow authenticated users to interact with startups.
+        return isSignedIn();
+      }
+
+      allow read: if isMember();
+      allow create: if isSignedIn() && isValidStartup(incoming());
+      allow update: if isMember() && isValidStartup(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'mission', 'industry'])
+      );
+
+      function isValidStartup(data) {
+        return data.name is string && data.name.size() <= 100 &&
+               data.mission is string && data.mission.size() <= 1000;
+      }
+
+      // Sub-collections
+      match /updates/{updateId} {
+        allow read: if isMember();
+        allow create: if isMember() && isValidUpdate(incoming());
+        
+        function isValidUpdate(data) {
+          return data.source is string && data.summary is string &&
+                 data.timestamp is string && data.authorId == request.auth.uid;
+        }
+      }
+
+      match /tasks/{taskId} {
+        allow read: if isMember();
+        allow write: if isMember() && isValidTask(incoming());
+
+        function isValidTask(data) {
+          return data.title is string && data.status in ['pending', 'in-progress', 'completed'];
+        }
+      }
+
+      match /news/{newsId} {
+        allow read: if isMember();
+        // News is usually system-generated, but we'll allow members to 'curate' for the demo
+        allow write: if isMember(); 
+      }
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId) && isValidUser(incoming());
+
+      function isValidUser(data) {
+        return data.name is string && data.email is string && data.role in ['founder', 'engineer', 'designer', 'business'];
+      }
+    }
+  }
+}

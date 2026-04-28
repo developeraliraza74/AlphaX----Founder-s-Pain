@@ -1,0 +1,9 @@
+{
+  "name": "Founders Stack",
+  "description": "An AI-powered command center for early-stage founders to reduce cognitive load, sync context across tools, and track critical AI ecosystem updates.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": []
+}

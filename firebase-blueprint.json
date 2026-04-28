@@ -1,0 +1,92 @@
+{
+  "entities": {
+    "Startup": {
+      "title": "Startup",
+      "description": "General information about the startup project.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "mission": { "type": "string" },
+        "industry": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "mission"]
+    },
+    "ContextUpdate": {
+      "title": "Context Update",
+      "description": "A summarized update from a tool or a sync session.",
+      "type": "object",
+      "properties": {
+        "source": { "type": "string", "description": "e.g., Slack, Notion, Weekly Sync" },
+        "summary": { "type": "string" },
+        "rawContent": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "authorId": { "type": "string" }
+      },
+      "required": ["source", "summary", "timestamp", "authorId"]
+    },
+    "ActionItem": {
+      "title": "Action Item",
+      "description": "A task extracted by AI from context updates.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "in-progress", "completed"] },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+        "assignedTo": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "sourceUpdateId": { "type": "string" }
+      },
+      "required": ["title", "status", "priority", "assignedTo"]
+    },
+    "AIEcosystemNews": {
+      "title": "AI Ecosystem News",
+      "description": "Relevant news or updates in the AI landscape tracked for the startup.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "impact": { "type": "string", "description": "Summarized impact on the startup's current stack" },
+        "url": { "type": "string" },
+        "category": { "type": "string", "enum": ["model", "framework", "pricing", "deprecation"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "impact", "category", "timestamp"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Profile information for a startup team member.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["founder", "engineer", "designer", "business"] },
+        "avatarUrl": { "type": "string" }
+      },
+      "required": ["name", "email", "role"]
+    }
+  },
+  "firestore": {
+    "startups": {
+      "schema": "Startup",
+      "description": "Information about startups using the platform."
+    },
+    "startups/{startupId}/updates": {
+      "schema": "ContextUpdate",
+      "description": "Pulse updates and summaries for a specific startup."
+    },
+    "startups/{startupId}/tasks": {
+      "schema": "ActionItem",
+      "description": "Tasks derived from startup activity."
+    },
+    "startups/{startupId}/news": {
+      "schema": "AIEcosystemNews",
+      "description": "Relevant AI industry updates for the startup."
+    },
+    "users": {
+      "schema": "UserProfile",
+      "description": "Platform users and their profiles."
+    }
+  }
+}
